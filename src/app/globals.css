@@ -2,26 +2,130 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+html {
+  width: 100dvw;
+  height: 100dvh;
+  color: #c7c7c7;
+  background-color: #28292a;
+  font-size: 12px;
+  font-weight: 400;
+
+  body {
+    width: 100%;
+    height: 100%;
+    main {
+      font-size: 1rem;
+      width: 100%;
+      height: 100%;
+      section {
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        table {
+          grid-auto-rows: 2rem;
+          width: 100%;
+          height: 100%;
+          tr {
+            cursor: pointer;
+            border-bottom: 1px solid #474747;
+          }
+          tr:first-child {
+            border-top: 1px solid #474747;
+          }
+
+          td,
+          th {
+            padding: 2px 8px;
+            border-right: 1px solid #474747;
+          }
+          :where(td, th):first-child {
+            border-left: 1px solid #474747;
+          }
+
+          thead {
+            tr {
+              th {
+                text-align: left;
+                font-weight: 500;
+                display: flex;
+                &.ascending::after {
+                  content: "▲";
+                  margin-left: auto;
+                }
+                &.descending::after {
+                  content: "▼";
+                  margin-left: auto;
+                }
+                > *:nth-child(2) {
+                }
+              }
+            }
+          }
+          tbody {
+            tr {
+              grid-auto-rows: 2rem;
+              overflow: hidden;
+              box-shadow: 0px 1px 1px 1px rgba(0, 0, 0, 0.25);
+              &:nth-child(even) {
+                background-color: #1f1f1f;
+              }
+
+              &:hover {
+                background-color: #3c3c3c;
+              }
+            }
+          }
+        }
+        session-panel {
+          display: block;
+          background-color: #3c3c3c77;
+          backdrop-filter: blur(1rem);
+          -webkit-backdrop-filter: blur(1rem);
+          position: fixed;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          overflow-x: scroll;
+          width: calc(100dvw - 64px);
+          height: 100dvh;
+          padding: 3rem;
+          h2 {
+            font-size: 2.25rem;
+          }
+          h3 {
+            font-size: 1.75rem;
+          }
+          button.closer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-right: 8px;
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #c7c7c7;
+            color: #474747;
+          }
+          :where(button, .button):not(.closer) {
+            box-shadow: -1px -2px 1px 0px rgba(0, 0, 0, 0.5) inset;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+          }
+          button.closer::before {
+            content: "✕";
+          }
+          textarea {
+            width: 100%;
+          }
+        }
+      }
+    }
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }
