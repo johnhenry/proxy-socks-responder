@@ -1,8 +1,6 @@
 {
   "tasks": {
-    "start-proxy:old": "deno run -r --inspect-brk --allow-all --watch ./server.mjs",
-    "agent:ui:old": "deno repl -r --allow-all --eval-file=./agent-ui.mjs",
-    "start-proxy": "deno run -r --allow-all --watch ./server2.mjs",
-    "agent:ui": "deno repl -r --allow-all --eval-file=./agent-ui2.mjs"
+    "start-proxy": "deno run -r --allow-all --watch ./server.mjs",
+    "agent:ui": "deno repl -r --allow-all --eval-file=./agent-ui.mjs"
   }
 }

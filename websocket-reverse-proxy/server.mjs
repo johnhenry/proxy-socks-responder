@@ -1,9 +1,7 @@
-import { ProxyServer2 as ProxyServer } from "./proxy-server/index.mjs";
+import { Server } from "./proxy/index.mjs";
 import { PORTS } from "./settings.mjs";
 
-const server = new ProxyServer(
-  () => new Response("no responder", { status: 500 })
-); // TODO: can 'null' be used here? nothing?
+const server = new Server(() => new Response("no responder", { status: 500 })); // TODO: can 'null' be used here? nothing?
 
 // Websocket Endpoint
 Deno.serve({ port: PORTS.HANDLING }, (req) => {
@@ -21,4 +19,5 @@ Deno.serve({ port: PORTS.HANDLING }, (req) => {
 ////////////////////////////
 
 // HTTP Endpoint
-Deno.serve({ port: PORTS.INCOMING }, server.boundFetch);
+
+Deno.serve({ port: PORTS.INCOMING }, server.fetch);

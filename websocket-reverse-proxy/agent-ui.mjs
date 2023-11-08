@@ -1,18 +1,19 @@
-import { serve, RemoteResponse as Response } from "./proxy-agent/index.mjs";
+import { Agent } from "./proxy/index.mjs";
 import { invertedPromise } from "./util/index.mjs";
 import { PORTS } from "./settings.mjs";
 const address = `http://localhost:${PORTS.HANDLING}`;
-const connection = new WebSocket(address);
 let response, setResponse;
 
-serve({ connection }, async (req) => {
+const agent = new Agent(address, { reconnect: 1000 });
+const serve = agent.boundServe;
+serve(async (req) => {
   try {
     const { url, method, headers } = req;
-    const text = await req.text();
+    const json = await req.json();
     [response, setResponse] = invertedPromise();
     setTimeout(() => {
       setResponse(
-        new Response("howdy!", {
+        new Response(`Hello there ${json.name}`, {
           status: 210,
           statusText: "It's all good",
           headers: {
@@ -20,7 +21,7 @@ serve({ connection }, async (req) => {
           },
         })
       );
-    }, 4000);
+    });
     return response;
   } catch (e) {
     console.error(e);
