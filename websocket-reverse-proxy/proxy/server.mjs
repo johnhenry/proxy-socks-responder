@@ -138,7 +138,8 @@ const Server = class {
   async commit(
     request,
     { id = randId("request-") } = { id: randId("request-") },
-    callback
+    callback,
+    die
   ) {
     try {
       const { connection } = this;
@@ -194,6 +195,7 @@ const Server = class {
         let writer = null;
         for await (const event of recieve) {
           const { kind, payload } = event;
+
           let body = null;
           if (kind === "response") {
             if (payload.body) {
@@ -205,6 +207,7 @@ const Server = class {
               new Response(body, {
                 status: payload.status,
                 statusText: payload.statusText,
+                // Note: HTTP2+ does not support statusText: https://github.com/hyperium/http/issues/345#issuecomment-558763905
                 headers: payload.headers,
               })
             );
@@ -216,6 +219,9 @@ const Server = class {
             );
           } else if (kind === "response:end" || kind === "response:body:end") {
             writer?.close();
+            break;
+          } else if (kind === "response:abort") {
+            die(new Error("response:abort"));
             break;
           }
         }
@@ -237,8 +243,8 @@ const Server = class {
       req = request;
       opts = { options, ...moreOptions };
     }
-    const [response, callback] = invertedPromise();
-    this.commit(req, opts, callback);
+    const [response, callback, die] = invertedPromise();
+    this.commit(req, opts, callback, die);
     return response;
   }
   get fetch() {

@@ -11,7 +11,6 @@ Deno.serve({ port }, async (req) => {
     null,
     " "
   );
-  console.log(input);
   return new Response(input, {
     headers: {
       "content-type": "application/json",

@@ -83,8 +83,8 @@ html {
             }
           }
         }
-        session-panel {
-          display: block;
+        .session-panel {
+          display: none;
           background-color: #3c3c3c77;
           backdrop-filter: blur(1rem);
           -webkit-backdrop-filter: blur(1rem);
@@ -124,6 +124,12 @@ html {
           textarea {
             width: 100%;
           }
+          &.showing {
+            display: block;
+          }
+        }
+        session-panel.showing {
+          display: block;
         }
       }
     }

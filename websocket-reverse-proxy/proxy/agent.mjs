@@ -6,6 +6,14 @@ import {
   randId,
 } from "../util/index.mjs";
 
+const LOG_LEVELS = {
+  NONE: 0,
+  ERROR: 1,
+  WARN: 2,
+  INFO: 3,
+  DEBUG: 4,
+};
+
 const Agent = class {
   #connection = null;
   #id = null;
@@ -13,13 +21,28 @@ const Agent = class {
   #send = null;
   #recieve = null;
   #reconnect = undefined;
+  #boundServe = (handler) => {};
+  #log = 0;
+  #abort = () => {};
   #handler = () => new Response("empty responder", { status: 500 });
-  constructor(address, { reconnect } = {}) {
+  constructor(
+    address,
+    { reconnect, log, abort } = {
+      reconnect: undefined,
+      log: 0,
+      abort: () => new Response("aborted", { status: 500 }),
+    }
+  ) {
+    this.#log = log;
     this.#reconnect = reconnect;
     this.#id = randId("agent-");
+    this.#abort = abort;
     this.#sessions = new Map();
-    console.log("AgentID", this.#id);
+    if (this.#log > LOG_LEVELS.WARN) {
+      console.log("AgentID", this.#id);
+    }
     this.#connection = this.createConnection(address);
+    this.#boundServe = this.unboundServe.bind(this);
   }
   createConnection(address) {
     return new Promise((success) => {
@@ -84,60 +107,69 @@ const Agent = class {
                   }
                 });
               }
+
               const request = new Request(payload.url, {
                 method: payload.method,
                 headers: payload.headers,
                 body: body,
+                duplex: "half",
               });
-              response = this.#handler(request);
+              response = this.#handler(request, { id: req });
               this.#sessions.set(id, {
                 send,
                 recieve,
                 request,
                 response,
               });
-              response.then((response) => {
-                const session = this.#sessions.get(id);
-                this.#sessions.set(id, {
-                  ...session,
-                  response,
-                });
-                send({
-                  kind: "response",
-                  payload: {
-                    url: request.url,
-                    method: request.method,
-                    headers: Object.fromEntries(request.headers),
-                    body: !!response.body,
-                  },
-                });
-                if (response.body) {
-                  setTimeout(async () => {
-                    const reader = response.body.getReader();
-                    let { value, done } = await reader.read();
-                    while (!done) {
-                      // TODO: bail out if collection empty?
-                      send({
-                        kind: "response:body",
-                        payload: {
-                          body: bytesToBase64(value),
-                          bodyKind: "base64",
-                        },
-                      });
-                      ({ value, done } = await reader.read());
-                      await new Promise((success) => setTimeout(success, 1000));
-                    }
-                    send({ kind: "response:body:end" });
+              response.then(
+                (response = new Response(null, { status: 500 })) => {
+                  const session = this.#sessions.get(id);
+                  this.#sessions.set(id, {
+                    ...session,
+                    response,
                   });
+                  send({
+                    kind: "response",
+                    payload: {
+                      headers: Object.fromEntries(response.headers),
+                      statusText: response.statusText,
+                      status: response.status,
+                      body: !!response.body,
+                    },
+                  });
+                  if (response.body) {
+                    setTimeout(async () => {
+                      const reader = response.body.getReader();
+                      let { value, done } = await reader.read();
+                      while (!done) {
+                        // TODO: bail out if collection empty?
+                        send({
+                          kind: "response:body",
+                          payload: {
+                            body: bytesToBase64(value),
+                            bodyKind: "base64",
+                          },
+                        });
+                        ({ value, done } = await reader.read());
+                        await new Promise((success) =>
+                          setTimeout(success, 1000)
+                        );
+                      }
+                      send({ kind: "response:body:end" });
+                    });
+                  }
                 }
-              });
+              );
             }
           }
         });
         success(connection);
       };
       const closer = () => {
-        console.log(`reconnecting in ${this.#reconnect} ms`);
+        if (this.#log > LOG_LEVELS.WARN) {
+          console.log(`reconnecting in ${this.#reconnect} ms`);
+        }
+
         if (this.#reconnect !== undefined) {
           this.#connection = new Promise(async (success) => {
             await new Promise((success) =>
@@ -154,17 +186,17 @@ const Agent = class {
   get connection() {
     return this.#connection;
   }
-  serve(handler) {
+  unboundServe(handler) {
     this.#handler = handler;
   }
-  get boundServe() {
-    return this.serve.bind(this);
+  get serve() {
+    return this.#boundServe;
   }
 };
 
 const upgradeWebSocket = (req) => {
   const response = new Response(null, { websocket: true });
 };
-export { Agent, upgradeWebSocket };
+export { Agent, upgradeWebSocket, LOG_LEVELS };
 
 export default Agent;

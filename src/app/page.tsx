@@ -1,27 +1,126 @@
 "use client";
 import { useState, useEffect } from "react";
-
-import {
-  serve,
-  RemoteResponse as Response,
-} from "../../websocket-reverse-proxy/proxy-agent/index.mjs";
+import { Agent } from "../../websocket-reverse-proxy/proxy/index.mjs";
 import { invertedPromise } from "../../websocket-reverse-proxy/util/index.mjs";
-
 import { PORTS } from "../../websocket-reverse-proxy/settings.mjs";
 
-const HeaderRenderer = ({ headers = {} } = { headers: {} }) => {
-  return (
-    <table>
-      <tbody>
-        {Object.entries(headers).map(([key, value]) => (
-          <tr key={key}>
-            <td>{key}</td>
-            <td>{value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+import { TablePlus } from "./table-plus";
+import { HeaderRenderer } from "./utils";
+import * as BPlugins from "./body-plugins/index";
+import * as RPlugins from "./response-plugins/index";
+
+import type { BodyPlugin } from "./body-plugins/types.d";
+import type { ResponsePlugin } from "./response-plugins/types.d";
+
+const bodyPlugins: BodyPlugin[] = [...Object.values(BPlugins)];
+const responsePlugins: ResponsePlugin[] = [...Object.values(RPlugins)];
+
+const PluginChoices = ({
+  request,
+  setPlugin,
+  title,
+  plugins,
+}: {
+  request: Request;
+  setPlugin: Function;
+  title: string;
+  plugins: (BodyPlugin | ResponsePlugin)[];
+}) => (
+  <div>
+    {title}:
+    {plugins
+      .filter((plugin: ResponsePlugin) => {
+        return typeof plugin.recommend !== "function"
+          ? plugin.recommend ?? true
+          : plugin.recommend(request);
+      })
+      .map((plugin: ResponsePlugin) => {
+        return (
+          <button
+            key={plugin.name}
+            type="button"
+            onClick={() => setPlugin(plugin)}
+          >
+            {plugin.name}
+          </button>
+        );
+      })}
+    <label>
+      <input type="checkbox" placeholder="null" name="recommended" /> Show only
+      recommended plugins
+    </label>
+  </div>
+);
+
+const RenderBody = ({
+  plugin,
+  request,
+  setPlugin,
+}: {
+  plugin?: ResponsePlugin;
+  request: Request;
+  setPlugin: Function;
+}) => {
+  if (!plugin) {
+    return PluginChoices({
+      title: "Body",
+      request,
+      setPlugin,
+      plugins: bodyPlugins,
+    });
+  }
+  return typeof plugin.Render !== "function"
+    ? plugin.Render
+    : plugin.Render(request);
+};
+
+const RenderResponder = ({
+  plugin,
+  request,
+  setPlugin,
+  respondWith,
+}: {
+  plugin?: ResponsePlugin;
+  request: Request;
+  setPlugin: Function;
+  respondWith: Function;
+}) => {
+  if (!plugin) {
+    return PluginChoices({
+      title: "Response",
+      request,
+      setPlugin,
+      plugins: responsePlugins,
+    });
+  }
+
+  const initialStatus =
+    typeof plugin.initialStatus !== "function"
+      ? plugin.initialStatus ?? 200
+      : plugin.initialStatus(request);
+  const initialStatusText =
+    typeof plugin.initialStatusText !== "function"
+      ? plugin.initialStatusText ?? "OK"
+      : plugin.initialStatusText(request);
+  const initialHeaders =
+    typeof plugin.initialHeaders !== "function"
+      ? plugin.initialHeaders ?? {}
+      : plugin.initialHeaders(request);
+  const initialBody =
+    typeof plugin.initialBody !== "function"
+      ? plugin.initialBody ?? null
+      : plugin.initialBody(request);
+  return typeof plugin.Render !== "function"
+    ? plugin.Render
+    : plugin.Render({
+        request,
+        initialStatus,
+        initialStatusText,
+        initialHeaders,
+        initialBody,
+        setPlugin,
+        respondWith,
+      });
 };
 
 declare global {
@@ -41,140 +140,184 @@ declare global {
   }
 }
 
-/*
-let o;
-let ts
-ts = new TransformStream({});
-ts.writable.getWriter().write("input");
-const request = new Request("/myEndpoint", {
-  method: "POST",
-  body: ts.readable,
-  duplex: "half"
-});
-o = await request.body.getReader().read();
-console.log(o);
-ts = new TransformStream({});
-ts.writable.getWriter().write("output");
-const response = new Response(ts.readable);
-o = await response.body.getReader().read();
-console.log(o);
-*/
+type ColumnHeader = {
+  id: string;
+  display: string;
+  sort?: number;
+};
 
-import { TablePlus } from "./table-plus";
-const SESSIONS = [
+type Session = {
+  id: string;
+  request: Request;
+  response: Promise<Response>;
+  respondWith: Function;
+};
+
+type TransformedSession = Session & {
+  url: URL;
+  method: string;
+  path: string;
+  start: number;
+  headers: JSX.Element;
+  searchParams: URLSearchParams;
+  headersRendered: JSX.Element;
+};
+
+const expandSession = (session: Session) => {
+  const { request } = session;
+  const { url, headers, body } = request;
+  const Url = new URL(url);
+
+  const headerArray = Array.from(headers);
+
+  const displayHeades = headerArray
+    .map(([key, value]) => {
+      return `${key}: ${value}`;
+    })
+    .join("\n");
+  let headersDisplay = "...";
+  switch (headerArray.length) {
+    case 0:
+      break;
+    case 1:
+      headersDisplay = `${headerArray[0][0]}:${headerArray[0][1]}`;
+      break;
+
+    default:
+      headersDisplay = `${headerArray[0][0]}:${headerArray[0][1]} (... and ${
+        headerArray.length - 1
+      } more)`;
+  }
+
+  return {
+    ...session,
+    url: Url,
+    // Path Params
+    method: request.method,
+    path: Url.pathname,
+
+    body: !!body,
+    // Timing
+    start: Date.now(),
+    end: null,
+    // UI
+    headersRendered: <div title={displayHeades}>{headersDisplay}</div>,
+    // Invisible
+    searchParams: Url.searchParams,
+  };
+};
+
+const DEFAULT_HEADERS = [
   {
-    method: "a-POST",
-    path: "c-http://localhost:8080/v1/health",
-    headers: "b-",
-    session: {
-      request: {},
-      response: {},
-    },
+    id: "id",
+    display: "ID",
   },
   {
-    method: "c-POST",
-    path: "a-http://localhost:8080/v1/health",
-    headers: "c-",
-    session: {
-      request: {},
-      response: {},
-    },
+    id: "method",
+    display: "Method",
   },
   {
-    method: "b-POST",
-    path: "b-http://localhost:8080/v1/health",
-    headers: "a-",
-    session: {
-      request: {},
-      response: {},
-    },
+    id: "path",
+    display: "Path",
+  },
+  {
+    id: "protocol",
+    display: "Protocol",
+  },
+  {
+    id: "origin",
+    display: "Origin",
+  },
+  {
+    id: "headersRendered",
+    display: "Headers",
+  },
+  {
+    id: "start",
+    display: "Start",
   },
 ];
 
+const OpenSession = ({
+  session,
+  currentSessionId,
+  setCurrentSession,
+}: {
+  session: TransformedSession;
+  currentSessionId: string | undefined;
+  setCurrentSession: Function;
+}) => {
+  const [bodyPlugin, setBodyPlugin] = useState<BodyPlugin | undefined>(
+    undefined
+  );
+  const [responsePlugin, setResponsePlugin] = useState<
+    ResponsePlugin | undefined
+  >(undefined);
+
+  return (
+    <div
+      key={session.id}
+      className={`session-panel${
+        session.id === currentSessionId ? " showing" : ""
+      }`}
+    >
+      <div>
+        <h2>
+          {session.method} {session.url.protocol}&#47;&#47;
+          {session.url.host}
+          {session.url.pathname}
+        </h2>
+
+        <h3>Headers</h3>
+        <ul>
+          {Array.from(session.request.headers).map(([key, value]) => (
+            <li key={key}>
+              {key}: {value}
+            </li>
+          ))}
+        </ul>
+        <h3>Search</h3>
+        <ul>
+          {Array.from(session.url.searchParams).map(([key, value]) => (
+            <li key={key}>
+              {key}: {value}
+            </li>
+          ))}
+        </ul>
+        <hr style={{ borderStyle: "dashed" }}></hr>
+        <RenderBody
+          plugin={bodyPlugin}
+          request={session.request}
+          setPlugin={setBodyPlugin}
+        />
+      </div>
+      <hr></hr>
+      <div>
+        <RenderResponder
+          plugin={responsePlugin}
+          request={session.request}
+          setPlugin={setResponsePlugin}
+          respondWith={session.respondWith}
+        />
+      </div>
+      <button
+        type="button"
+        className="closer"
+        onClick={() => {
+          setCurrentSession(undefined);
+        }}
+      ></button>
+    </div>
+  );
+};
+
 export default function Home() {
-  const [sessions, setSessions] = useState([]);
-  const [currentSession, setCurrentSession] = useState(null);
-  const [headers, setHeaders] = useState([
-    {
-      id: "method",
-      display: "Method",
-    },
-    {
-      id: "path",
-      display: "Path",
-    },
-    {
-      id: "url",
-      display: "URL",
-    },
-    {
-      id: "protocol",
-      display: "Protocol",
-    },
-    {
-      id: "origin",
-      display: "Origin",
-    },
-    {
-      id: "headers",
-      display: "Headers",
-    },
-    {
-      id: "start",
-      display: "Start",
-    },
-  ]);
-
-  const transformedSessions = sessions.map((session: any) => {
-    const {
-      request: { method, url, headers },
-    } = session;
-    const Url = new URL(url);
-
-    const headerArray = Array.from(Object.entries(headers));
-
-    const displayHeades = headerArray
-      .map(([key, value]) => {
-        return `${key}: ${value}`;
-      })
-      .join("\n");
-    let headersDisplay = "...";
-    switch (headerArray.length) {
-      case 0:
-        break;
-      case 1:
-        headersDisplay = `${headerArray[0][0]}:${headerArray[0][1]}`;
-        break;
-
-      default:
-        headersDisplay = `${headerArray[0][0]}:${headerArray[0][1]} (... and ${
-          headerArray.length - 1
-        } more)`;
-    }
-
-    return {
-      method,
-      // Path Params
-      path: Url.pathname,
-      url: Url.href,
-      host: Url.host,
-      hostname: Url.hostname,
-      origin: Url.origin,
-      password: Url.password,
-      port: Url.port,
-      protocol: Url.protocol,
-      search: Url.search,
-      username: Url.username,
-      // Timing
-      start: Date.now(),
-      // UI
-      headers: <div title={displayHeades}>{headersDisplay}</div>,
-      // Invisible
-      searchParams: Url.searchParams,
-      ...session,
-    };
-  });
-
+  const [sessions, setSessions] = useState<TransformedSession[]>([]);
+  const [currentSession, setCurrentSession] = useState<
+    TransformedSession | undefined
+  >(undefined);
+  const [headers, setHeaders] = useState<ColumnHeader[]>(DEFAULT_HEADERS);
+  const transformedSessions = sessions.map(expandSession);
   const updateSort = (id: string) => {
     let maxSort = 0;
     let targetSort = 0;
@@ -195,22 +338,20 @@ export default function Home() {
 
   useEffect(() => {
     const address = `ws://localhost:${PORTS.HANDLING}`;
-    const connection = new WebSocket(address);
-    serve({ connection } as any, async (request: any) => {
+    const { serve } = new Agent(address);
+    serve(async (request: Request, { id }: { id: string }) => {
       try {
-        const [response, setResponse] = invertedPromise();
-        setSessions((previous) => [
+        const [response, respondWith] = invertedPromise();
+        setSessions((previous: Session[]) => [
           ...previous,
-          { request, response, setResponse },
+          { id, request, response, respondWith },
         ]);
         return response;
       } catch (e) {
         console.error(e);
       }
     });
-    return () => {
-      connection.close();
-    };
+    return () => {};
   }, []);
 
   return (
@@ -219,72 +360,22 @@ export default function Home() {
         <TablePlus
           headers={headers}
           data={transformedSessions}
-          headerClick={(e) => updateSort(e.head)}
-          recordClick={(e) => setCurrentSession(e.session)}
+          headerClick={(e: any) => updateSort(e.head)}
+          recordClick={(e: any) => {
+            setCurrentSession(e.session);
+          }}
         />
-        {currentSession && (
-          <session-panel>
-            <div>
-              <h2>Incoming: </h2>
-              <h3>
-                {currentSession.method}{" "}
-                <abbr title={currentSession.url}>{currentSession.path}</abbr>
-              </h3>
-              <canvas
-                style={{
-                  display: "block",
-                  width: "100%",
-                  height: "64px",
-                  backgroundColor: "black",
-                }}
-              ></canvas>
 
-              <h3>Incoming Headers</h3>
-              <HeaderRenderer headers={currentSession.request.headers} />
-
-              <h3>Incoming Body</h3>
-              <button type="button">load body</button>
-            </div>
-            <div>
-              <h2>Outgoing</h2>
-
-              <h3>
-                <label>
-                  Status: <input placeholder="status code" defaultValue={200} />
-                </label>
-                <label>
-                  Status Text:{" "}
-                  <input placeholder="status text" defaultValue={"OK"} />
-                </label>
-              </h3>
-              <h3>Outgoing Headers</h3>
-              <ul>
-                <li>
-                  <input name="" title="?" />:<input name="" title="?" />
-                </li>
-                <li>
-                  <input name="" title="?" />:<input name="" title="?" />
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3>Outgoing Body</h3>
-            </div>
-            <button
-              className="closer"
-              title="set"
-              type="button"
-              onClick={() => setCurrentSession(null)}
-            ></button>
-            <textarea title="body"></textarea>
-            <br />
-            <button title="">+</button> <button title="">ws</button>{" "}
-            <button title="">sse</button> <button title="">stream</button>
-            <br></br>
-            <button type="button">Cancel</button>
-            <button type="button">Send</button>
-          </session-panel>
-        )}
+        {transformedSessions.map((session: TransformedSession) => {
+          return (
+            <OpenSession
+              key={session.id}
+              session={session}
+              currentSessionId={currentSession?.id}
+              setCurrentSession={setCurrentSession}
+            />
+          );
+        })}
       </section>
     </main>
   );
