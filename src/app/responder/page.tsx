@@ -10,6 +10,8 @@ import type { Session, ColumnHeader } from "./types.d";
 
 import { OpenSession } from "./opensession";
 
+import { API_HOST } from "../../settings.mjs";
+
 const DEFAULT_HEADERS = [
   {
     id: "id",
@@ -66,8 +68,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const address = `ws://whole-seal-27.deno.dev`;
-    const { serve } = new Agent(address);
+    const { serve } = new Agent(`ws://${API_HOST}`);
     serve(async (request: Request, { id }: { id: string }) => {
       try {
         const [response, respondWith] = invertedPromise();
