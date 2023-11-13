@@ -1,19 +1,36 @@
 import { useEffect, useState } from "react";
-import { extractFileTypesFromHeaderValue } from "../utils";
-import type { BodyPlugin } from "./types";
+import { extractFileTypesFromHeaderValue } from "../../../utils";
+import type { BodyPlugin } from "./types.d";
+
+// Body Plugin: Text (Generic)
+// Body plugin that renders the body as text if the body exists
+const bodyPluginTextGeneric: BodyPlugin = {
+  name: "Text (Generic)",
+  Render: (request) => {
+    const [body, setBody] = useState("");
+    useEffect(() => {
+      async function fetchData() {
+        const text = (await request?.text()) || {};
+        setBody(text);
+      }
+      fetchData();
+    }, [request]);
+    return <pre title="request-body">{body}</pre>;
+  },
+};
 
 // Body Plugin: Text
 // Body plugin that checks if the request body is text and, if so, renders it cleanly as text
 const bodyPluginText: BodyPlugin = {
   name: "Text",
-  // recommend: (request) => {
-  //   const contentType = request?.headers.get("content-type");
-  //   if (!contentType) {
-  //     return false;
-  //   }
-  //   const contentTypes = extractFileTypesFromHeaderValue(contentType);
-  //   return contentTypes.includes("application/text");
-  // },
+  recommend: (request) => {
+    const contentType = request?.headers.get("content-type");
+    if (!contentType) {
+      return false;
+    }
+    const contentTypes = extractFileTypesFromHeaderValue(contentType);
+    return contentTypes.includes("application/text");
+  },
   Render: (request) => {
     const [body, setBody] = useState("");
     useEffect(() => {
@@ -413,8 +430,9 @@ const bodyPluginXML: BodyPlugin = {
 };
 
 export {
-  bodyPluginJSON,
+  bodyPluginTextGeneric,
   bodyPluginText,
+  bodyPluginJSON,
   bodyPluginImage,
   bodyPluginSVG,
   bodyPluginVideo,

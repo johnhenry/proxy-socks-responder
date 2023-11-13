@@ -95,32 +95,54 @@ html {
           overflow-x: scroll;
           width: calc(100dvw - 64px);
           height: 100dvh;
-          padding: 3rem;
+          padding: 0rem;
+          > *:nth-child(odd) {
+            background-color: #1f1f1f77;
+          }
+          > * {
+            min-height: 24px;
+            padding: 0 0.5rem;
+            vertical-align: middle;
+            border: 1px solid #474747;
+          }
+
           h2 {
             font-size: 2.25rem;
           }
           h3 {
             font-size: 1.75rem;
           }
-          button.closer {
-            position: absolute;
-            top: 0;
-            right: 0;
-            margin-right: 8px;
-            margin-top: 8px;
-            padding: 8px;
-            background-color: #c7c7c7;
-            color: #474747;
+          > header {
+            border: 1px solid #474747;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+
+            button {
+              background-color: #c7c7c7;
+              color: #474747;
+              width: 2rem;
+              cursor: pointer;
+            }
+            button.closer::before {
+              content: "✕";
+            }
+            button.minimizer {
+              margin-left: auto;
+            }
+            button.minimizer::before {
+              content: "_";
+            }
           }
-          :where(button, .button):not(.closer) {
+
+          :where(button, .button):not(.closer, .minimizer) {
             box-shadow: -1px -2px 1px 0px rgba(0, 0, 0, 0.5) inset;
             font-size: 1.2rem;
             padding: 4px 8px;
             border-radius: 4px;
           }
-          button.closer::before {
-            content: "✕";
-          }
+
           textarea {
             width: 100%;
           }

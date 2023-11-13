@@ -1,6 +1,6 @@
 type BodyPlugin = {
   name: string;
-  recommend?: boolean | ((request?: Request) => boolean);
+  recommend?: boolean | ((request: Request) => boolean);
   Render:
     | React.ReactNode
     | null

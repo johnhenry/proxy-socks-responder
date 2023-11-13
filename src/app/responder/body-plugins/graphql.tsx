@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { extractFileTypesFromHeaderValue } from "../utils";
-import type { BodyPlugin } from "./types";
+import { extractFileTypesFromHeaderValue } from "../../../utils";
+import type { BodyPlugin } from "./types.d";
 // TODO: Create proper GraphQL parser
 
 // Body Plugin: GraphQL

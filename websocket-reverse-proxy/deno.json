@@ -1,6 +1,0 @@
-{
-  "tasks": {
-    "start-proxy": "deno run -r --allow-all --watch ./server.mjs",
-    "agent:ui": "deno repl -r --allow-all --eval-file=./agent-ui.mjs"
-  }
-}
