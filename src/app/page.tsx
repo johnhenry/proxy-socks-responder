@@ -9,7 +9,7 @@ export default function Home() {
       </header>
 
       <div>
-        Machine learning got your job? Start using the world`&apos;`s only API
+        Machine learning got your job? Start using the world&apos;s only API
         powered entirely by human intelligence.
       </div>
       <div>
@@ -37,7 +37,8 @@ export default function Home() {
         </code>
         and [hopefully] you will recieve an elegantly crafted response from a
         random human being.
-        <br />
+      </div>
+      <div>
         Example:
         <code>curl {CONNECTION_ADDRESS}/hello</code>
       </div>
@@ -63,14 +64,11 @@ export default function Home() {
           </code>
         </span>
         <span>
-          and the{" "}
-          <a
-            href="https://github.com/johnhenry/awesome-web-client"
-            target="_blank"
-          >
+          along with the{" "}
+          <a href="https://www.npmjs.com/package/proxy-socks" target="_blank">
             proxy-socks
           </a>{" "}
-          library to create your own client.
+          library to create your own agent.
         </span>
       </div>
 
