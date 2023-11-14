@@ -10,7 +10,7 @@ import type { Session, ColumnHeader } from "./types.d";
 
 import { OpenSession } from "./opensession";
 
-import { API_HOST } from "../../settings.mjs";
+import { API_HOST, API_HOST_PROTOCOL } from "../../settings.mjs";
 
 const DEFAULT_HEADERS = [
   {
@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const { serve } = new Agent(`wss://${API_HOST}`);
+    const { serve } = new Agent(`${API_HOST_PROTOCOL}://${API_HOST}`);
     serve(async (request: Request, { id }: { id: string }) => {
       try {
         const [response, respondWith] = invertedPromise();
