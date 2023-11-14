@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const { serve } = new Agent(`ws://${API_HOST}`);
+    const { serve } = new Agent(`wss://${API_HOST}`);
     serve(async (request: Request, { id }: { id: string }) => {
       try {
         const [response, respondWith] = invertedPromise();
