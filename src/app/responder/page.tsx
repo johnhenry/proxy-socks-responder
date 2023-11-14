@@ -92,11 +92,11 @@ export default function Home() {
               headerArray[0][1]
             } (... and ${headerArray.length - 1} more)`;
         }
-        const session = {
+        const session: Session = {
           id,
           request,
-          response,
-          respondWith,
+          response: response!,
+          respondWith: respondWith as unknown as Function,
           status: SessionStatus.Pending,
           url: Url,
           // Path Params
@@ -131,7 +131,7 @@ export default function Home() {
         />
 
         {sessions.map((session: Session) => {
-          const advance = (stat = undefined) => {
+          const advance = (stat?: number) => {
             setSessions((previous: Session[]) => {
               const index = previous.findIndex(
                 (item) => item.id === session.id

@@ -35,10 +35,11 @@ const TablePlus = (
       return [id, sort > 0];
     }); //.reverse(); //?
   for (const [id, direction] of sortOrders) {
+    const ID = id ? String(id) : "";
     if (direction) {
-      data.sort((a, b) => a[id || ""]?.localeCompare?.(b[id || ""]));
+      data.sort((a, b) => a[ID]?.localeCompare?.(b[ID]));
     } else {
-      data.sort((a, b) => b[id || ""]?.localeCompare?.(a[id || ""]));
+      data.sort((a, b) => b[ID]?.localeCompare?.(a[ID]));
     }
   }
 

@@ -4,7 +4,7 @@ import type { BodyPlugin } from "./types.d";
 
 // Body Plugin: Text (Generic)
 // Body plugin that renders the body as text if the body exists
-const bodyPluginTextGeneric: BodyPlugin = {
+export const bodyPluginTextGeneric: BodyPlugin = {
   name: "Text (Generic)",
   Render: (request) => {
     const [body, setBody] = useState("");
@@ -21,7 +21,7 @@ const bodyPluginTextGeneric: BodyPlugin = {
 
 // Body Plugin: Text
 // Body plugin that checks if the request body is text and, if so, renders it cleanly as text
-const bodyPluginText: BodyPlugin = {
+export const bodyPluginText: BodyPlugin = {
   name: "Text",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -46,7 +46,7 @@ const bodyPluginText: BodyPlugin = {
 
 // Body Plugin: JSON
 // Body plugin that checks if the request body is JSON and, if so, renders it neatly as json
-const bodyPluginJSON: BodyPlugin = {
+export const bodyPluginJSON: BodyPlugin = {
   name: "JSON",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -71,7 +71,7 @@ const bodyPluginJSON: BodyPlugin = {
 
 // Body Plugin: Image
 // Body plugin that checks if the request body is a common image format image and, if so, renders it witin an image tag
-const bodyPluginImage: BodyPlugin = {
+export const bodyPluginImage: BodyPlugin = {
   name: "Image",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -103,7 +103,7 @@ const bodyPluginImage: BodyPlugin = {
 
 // Body Plugin: SVG
 // Body plugin that checks if the request body is an SVG image and, if so, renders it within an svg tag
-const bodyPluginSVG: BodyPlugin = {
+export const bodyPluginSVG: BodyPlugin = {
   name: "SVG",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -125,15 +125,13 @@ const bodyPluginSVG: BodyPlugin = {
       }
       fetchData();
     }, [request]);
-    return (
-      <svg title="request-body" dangerouslySetInnerHTML={{ __html: body }} />
-    );
+    return <svg dangerouslySetInnerHTML={{ __html: body }} />;
   },
 };
 
 // Body Plugin: Video
 // Body plugin that checks if the request body is a common video format and, if so, renders it within a video tag
-const bodyPluginVideo: BodyPlugin = {
+export const bodyPluginVideo: BodyPlugin = {
   name: "Video",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -165,7 +163,7 @@ const bodyPluginVideo: BodyPlugin = {
 
 // Body Plugin: Audio
 // Body plugin that checks if the request body is a common audio format and, if so, renders it within an audio tag
-const bodyPluginAudio: BodyPlugin = {
+export const bodyPluginAudio: BodyPlugin = {
   name: "Audio",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -197,7 +195,7 @@ const bodyPluginAudio: BodyPlugin = {
 
 // Body Plugin: HTML
 // Body plugin that checks if the request body is HTML and, if so, renders it within a borderlss iframe
-const bodyPluginHTML: BodyPlugin = {
+export const bodyPluginHTML: BodyPlugin = {
   name: "HTML",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -233,7 +231,7 @@ const bodyPluginHTML: BodyPlugin = {
 
 // Body Plugin: Form
 // Body plugin that checks if the request body is a form and, if so, renders it as a table
-const bodyPluginForm: BodyPlugin = {
+export const bodyPluginForm: BodyPlugin = {
   name: "Form",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -276,7 +274,7 @@ const bodyPluginForm: BodyPlugin = {
 // Body Plugin: Download
 // Plugin that renderes the request body to a downloadble link. If a file name is suggested, it will be used to set the download attribute of the link. If a file name is not found, the hash of the request body will be used instead.
 
-const bodyPluginDownload: BodyPlugin = {
+export const bodyPluginDownload: BodyPlugin = {
   name: "Download",
   Render: (request) => {
     const [body, setBody] = useState("");
@@ -315,7 +313,7 @@ const bodyPluginDownload: BodyPlugin = {
 
 // Body Plugin: GraphQL
 // Body plugin that checks if the request body is a GraphQL query and, if so, renders it as possibly nested a table
-const bodyPluginGraphQL: BodyPlugin = {
+export const bodyPluginGraphQL: BodyPlugin = {
   name: "GraphQL",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -358,7 +356,7 @@ const bodyPluginGraphQL: BodyPlugin = {
 // Body Plugin: PDF
 // Body plugin that checks if the request body is a PDF and, if so, renders it within a borderless iframe
 
-const bodyPluginPDF: BodyPlugin = {
+export const bodyPluginPDF: BodyPlugin = {
   name: "PDF",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -394,7 +392,7 @@ const bodyPluginPDF: BodyPlugin = {
 
 // Body Plugin: XML
 // Body plugin that checks if the request body is XML and, if so, renders it within a borderless iframe
-const bodyPluginXML: BodyPlugin = {
+export const bodyPluginXML: BodyPlugin = {
   name: "XML",
   recommend: (request) => {
     const contentType = request?.headers.get("content-type");
@@ -427,20 +425,4 @@ const bodyPluginXML: BodyPlugin = {
       />
     );
   },
-};
-
-export {
-  bodyPluginTextGeneric,
-  bodyPluginText,
-  bodyPluginJSON,
-  bodyPluginImage,
-  bodyPluginSVG,
-  bodyPluginVideo,
-  bodyPluginAudio,
-  bodyPluginHTML,
-  bodyPluginForm,
-  bodyPluginDownload,
-  bodyPluginGraphQL,
-  bodyPluginPDF,
-  bodyPluginXML,
 };

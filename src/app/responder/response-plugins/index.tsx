@@ -8,7 +8,7 @@ const DynamicHeaders = ({
   headers,
   setHeaders,
 }: {
-  headers: [any, any][];
+  headers: [any][][];
   setHeaders: Function;
 }) => (
   <>
@@ -20,7 +20,7 @@ const DynamicHeaders = ({
               defaultValue={key}
               placeholder="header name"
               onChange={(e) => {
-                setHeaders((headers: [any, any][]) => {
+                setHeaders((headers: any[][]) => {
                   headers.splice(index, 1, [e.target.value, value]);
                   return [...headers];
                 });
@@ -60,7 +60,7 @@ const DynamicHeaders = ({
   </>
 );
 
-const StaticHeaders = ({ headers }: { headers: [any, any][] }) => (
+const StaticHeaders = ({ headers }: { headers: any[][] }) => (
   <ul>
     {headers.map(([key, value], index) => {
       return (
@@ -91,9 +91,7 @@ const responsePluginGeneric: ResponsePlugin = {
     } = options!;
     const [status, setStatus] = useState(initialStatus);
     const [body, setBody] = useState(initialBody);
-    const [headers, setHeaders] = useState<[any, any][]>(
-      objToArry(initialHeaders)
-    );
+    const [headers, setHeaders] = useState<any[][]>(objToArry(initialHeaders));
 
     return (
       <div>
@@ -179,7 +177,7 @@ const responsePluginFile: ResponsePlugin = {
     const { respondWith, advance } = options!;
     const [file, setFile] = useState<File | undefined>(undefined);
     const [headers, setHeaders] = useState<[any, any][]>([["", ""]]);
-    const [body, setBody] = useState("");
+    const [body, setBody] = useState<string | ArrayBuffer | null>("");
 
     return (
       <div>

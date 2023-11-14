@@ -16,8 +16,6 @@ export type Session = {
   url: URL;
   method: string;
   path: string;
-  start: number;
-  headers: JSX.Element;
   searchParams: URLSearchParams;
   headersRendered: JSX.Element;
 };
