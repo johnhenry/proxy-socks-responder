@@ -10,7 +10,7 @@ import type { Session, ColumnHeader } from "./types.d";
 
 import { OpenSession } from "./opensession";
 
-import { WEBSOCKET_ADDRESS } from "../../settings.ts";
+import { WEBSOCKET_ADDRESS } from "../../settings";
 
 const DEFAULT_HEADERS = [
   {

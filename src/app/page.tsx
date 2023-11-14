@@ -1,9 +1,9 @@
 "use client";
-import { CONNECTION_ADDRESS, WEBSOCKET_ADDRESS } from "../settings.ts";
+import { CONNECTION_ADDRESS, WEBSOCKET_ADDRESS } from "../settings";
 
 export default function Home() {
   return (
-    <section class="home">
+    <section className="home">
       <header>
         <h1>Human Powered API</h1>
       </header>
