@@ -111,7 +111,7 @@ const responsePluginGeneric: ResponsePlugin = {
                 }}
               >
                 {statusCodes.map(([code, description]) => (
-                  <option value={code}>
+                  <option key={code} value={code}>
                     {code}:{description}
                   </option>
                 ))}

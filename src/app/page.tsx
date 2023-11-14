@@ -9,8 +9,8 @@ export default function Home() {
       </header>
 
       <div>
-        Machine learning got your job? Start using the world's only API powered
-        entirely by human intelligence.
+        Machine learning got your job? Start using the world`&apos;`s only API
+        powered entirely by human intelligence.
       </div>
       <div>
         <h2>Sending Requests</h2>
@@ -35,7 +35,7 @@ export default function Home() {
             📋
           </button>
         </code>
-        and [hopefully] you'll recieve an elegantly crafted response from a
+        and [hopefully] you will recieve an elegantly crafted response from a
         random human being.
         <br />
         Example:
