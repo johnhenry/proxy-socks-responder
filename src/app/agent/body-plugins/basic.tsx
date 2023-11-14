@@ -260,8 +260,7 @@ export const bodyPluginForm: BodyPlugin = {
             const [key, value] = pair.split("=");
             return (
               <tr key={key}>
-                <td>{key}</td>
-                <td>{value}</td>
+                <td>{key}</td>:<td>{value}</td>
               </tr>
             );
           })}

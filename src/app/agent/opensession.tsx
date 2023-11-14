@@ -144,14 +144,6 @@ const OpenSession = ({
       }`}
     >
       <header>
-        {session.id}
-        {session.status === 0
-          ? " (pending)"
-          : session.status === 1
-          ? " (responded)"
-          : session.status === 2
-          ? " (complete)"
-          : " (error)"}
         <button
           type="button"
           className="minimizer"
@@ -162,6 +154,14 @@ const OpenSession = ({
           className="closer"
           onClick={() => remove()}
         ></button>
+        {session.id}
+        {session.status === 0
+          ? " (pending)"
+          : session.status === 1
+          ? " (responded)"
+          : session.status === 2
+          ? " (complete)"
+          : " (error)"}
       </header>
       <p>
         {session.method} {session.url.protocol}&#47;&#47;

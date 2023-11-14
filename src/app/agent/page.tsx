@@ -119,7 +119,7 @@ export default function Home() {
   }, []);
 
   return (
-    <section>
+    <section className="responder">
       <TablePlus
         headers={headers}
         data={sessions}
