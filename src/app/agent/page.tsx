@@ -10,7 +10,7 @@ import type { Session, ColumnHeader } from "./types.d";
 
 import { OpenSession } from "./opensession";
 
-import { API_HOST, API_HOST_PROTOCOL } from "../../settings.mjs";
+import { WEBSOCKET_ADDRESS } from "../../settings.ts";
 
 const DEFAULT_HEADERS = [
   {
@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const { serve } = new Agent(`${API_HOST_PROTOCOL}://${API_HOST}`);
+    const { serve } = new Agent(WEBSOCKET_ADDRESS);
     serve(async (request: Request, { id }: { id: string }) => {
       try {
         const [response, respondWith] = invertedPromise();
@@ -119,55 +119,51 @@ export default function Home() {
   }, []);
 
   return (
-    <main>
-      <section>
-        <TablePlus
-          headers={headers}
-          data={sessions}
-          headerClick={(e: any) => updateSort(e.head)}
-          recordClick={(e: any) => {
-            setCurrentSession(e.session);
-          }}
-        />
+    <section>
+      <TablePlus
+        headers={headers}
+        data={sessions}
+        headerClick={(e: any) => updateSort(e.head)}
+        recordClick={(e: any) => {
+          setCurrentSession(e.session);
+        }}
+      />
 
-        {sessions.map((session: Session) => {
-          const advance = (stat?: number) => {
-            setSessions((previous: Session[]) => {
-              const index = previous.findIndex(
-                (item) => item.id === session.id
-              );
-              const next = [...previous];
-              const current = next[index];
-              current.status = stat !== undefined ? stat : current.status + 1;
-              if (current.status === SessionStatus.Responded) {
-                current.tResponded = Date.now();
-              }
-              if (current.status === SessionStatus.Complete) {
-                current.tEnd = Date.now();
-              }
-              if (current.status === SessionStatus.Remove) {
-                next.splice(index, 1);
-                return next;
-              }
-              next.splice(index, 1, current);
+      {sessions.map((session: Session) => {
+        const advance = (stat?: number) => {
+          setSessions((previous: Session[]) => {
+            const index = previous.findIndex((item) => item.id === session.id);
+            const next = [...previous];
+            const current = next[index];
+            current.status = stat !== undefined ? stat : current.status + 1;
+            if (current.status === SessionStatus.Responded) {
+              current.tResponded = Date.now();
+            }
+            if (current.status === SessionStatus.Complete) {
+              current.tEnd = Date.now();
+            }
+            if (current.status === SessionStatus.Remove) {
+              next.splice(index, 1);
               return next;
-            });
-          };
+            }
+            next.splice(index, 1, current);
+            return next;
+          });
+        };
 
-          return (
-            <OpenSession
-              key={session.id}
-              session={session}
-              currentSessionId={currentSession?.id}
-              close={() => setCurrentSession(undefined)}
-              remove={() => {
-                advance(SessionStatus.Remove);
-              }}
-              advance={advance}
-            />
-          );
-        })}
-      </section>
-    </main>
+        return (
+          <OpenSession
+            key={session.id}
+            session={session}
+            currentSessionId={currentSession?.id}
+            close={() => setCurrentSession(undefined)}
+            remove={() => {
+              advance(SessionStatus.Remove);
+            }}
+            advance={advance}
+          />
+        );
+      })}
+    </section>
   );
 }

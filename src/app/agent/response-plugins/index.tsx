@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 
 import type { ResponsePlugin } from "./types.d";
 
+import { statusCodes } from "./statusCodes";
+
 const objToArry = (obj: any) => Object.keys(obj).map((key) => [key, obj[key]]);
+
+// List of All HTTP Status Codes and their meanings
 
 const DynamicHeaders = ({
   headers,
@@ -78,7 +82,7 @@ const StaticHeaders = ({ headers }: { headers: any[][] }) => (
 // Changes to non-dynamic mode when finished (sesson status > 0)
 
 const responsePluginGeneric: ResponsePlugin = {
-  name: "Basic",
+  name: "Generic Response",
   Render(options) {
     const {
       initialHeaders,
@@ -99,13 +103,19 @@ const responsePluginGeneric: ResponsePlugin = {
           <>
             <p>
               status:
-              <input
+              <select
                 title="status"
                 defaultValue={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
                 }}
-              />
+              >
+                {statusCodes.map(([code, description]) => (
+                  <option value={code}>
+                    {code}:{description}
+                  </option>
+                ))}
+              </select>
             </p>
             <p>headers:</p>
             <DynamicHeaders headers={headers} setHeaders={setHeaders} />
