@@ -10,7 +10,7 @@ import type { Session, ColumnHeader } from "./types.d";
 
 import { OpenSession } from "./opensession";
 
-import { WEBSOCKET_ADDRESS } from "../../settings";
+import { WEBSOCKET_ADDRESS, SECRET_NAME } from "../../settings";
 
 const DEFAULT_HEADERS = [
   {
@@ -44,6 +44,14 @@ const DEFAULT_HEADERS = [
 ];
 
 export default function Home() {
+  const [storedSecret, setStoredSecret] = useState<string>(
+    typeof localStorage !== "undefined"
+      ? localStorage.getItem(SECRET_NAME) || ""
+      : ""
+  );
+
+  const [secret, setSecret] = useState<string>(storedSecret);
+
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | undefined>(
     undefined
@@ -68,7 +76,13 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const { serve } = new Agent(WEBSOCKET_ADDRESS);
+    if (!storedSecret) {
+      return () => {};
+    }
+    // @ts-ignore
+    const { serve, connection } = new Agent(WEBSOCKET_ADDRESS, {
+      secret: storedSecret,
+    });
     serve(async (request: Request, { id }: { id: string }) => {
       try {
         const [response, respondWith] = invertedPromise();
@@ -114,9 +128,36 @@ export default function Home() {
       } catch (e) {
         console.error(e);
       }
+      return;
     });
-    return () => {};
-  }, []);
+    return () => {
+      // @ts-ignore
+      connection.then((conn) => conn.close());
+    };
+  }, [storedSecret]);
+  if (!storedSecret) {
+    return (
+      <section>
+        <form>
+          <input
+            type="text"
+            value={secret}
+            onChange={(e) => setSecret(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setStoredSecret(secret);
+              typeof localStorage !== "undefined" &&
+                localStorage.setItem(SECRET_NAME, secret);
+            }}
+          >
+            Set Secret
+          </button>
+        </form>
+      </section>
+    );
+  }
 
   return (
     <section className="responder">
@@ -164,6 +205,20 @@ export default function Home() {
           />
         );
       })}
+      <div>
+        <button
+          type="button"
+          className="clear-button"
+          onClick={() => {
+            setSecret("");
+            setStoredSecret("");
+            typeof localStorage !== "undefined" &&
+              localStorage.removeItem(SECRET_NAME);
+          }}
+        >
+          Clear Secret
+        </button>
+      </div>
     </section>
   );
 }

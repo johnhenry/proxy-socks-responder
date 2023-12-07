@@ -7,3 +7,4 @@ export const API_INSECURE: boolean = Boolean(
 const S_FOR_SECURITY = API_INSECURE ? "" : "s";
 export const WEBSOCKET_ADDRESS = `ws${S_FOR_SECURITY}://${API_HOST}`;
 export const CONNECTION_ADDRESS = `http${S_FOR_SECURITY}://${API_HOST}`;
+export const SECRET_NAME: string = process.env.SECRET_NAME || "secret";
